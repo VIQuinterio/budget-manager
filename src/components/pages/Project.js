@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { parse, v4 as uuidv4 } from "uuid";
+
+import styles from "./Project.module.css";
 
 import Loading from "../layout/Loading";
 import Container from "../layout/Container";
 import ProjectForm from '../project/ProjectForm';
 import Message from '../layout/Message';
-
-import styles from "./Project.module.css";
+import ServiceForm from "../services/ServiceForm";
+import ServiceCard from "../services/ServiceCard";
 
 function Project() {
     const { id } = useParams();
     const [project, setProject] = useState([]);
+    const [services, setServices] = useState([]);
     const [showProjectForm, setshowProjectForm] = useState(false);
+    const [showServiceForm, setshowServiceForm] = useState(false);
     const [message, setMessage] = useState();
     const [type, setType] = useState();
 
@@ -25,18 +30,22 @@ function Project() {
             })
             .then((resp) => resp.json())
             .then((data) => {
-                setProject(data);            
+                setProject(data);
+                setServices(data.services);         
             })
             .catch((error) => console.log(error));
         }, 300)
     }, [id]);
 
     function editPost(project) {
+        setMessage('');
+
         if (project.budget < project.cost) {
             setMessage('O orçamento não pode ser menor que o custo do projeto!');
             setType('error');
             return false
         }
+
         /*O PATCH SÓ ALTERA O QUE FOR DIREFENTE NO BANCO*/
         fetch(`http://localhost:5000/projects/${project.id}`, {
             method: 'PATCH',
@@ -52,11 +61,79 @@ function Project() {
             setMessage('Projeto atualizado com sucesso!');
             setType('success');
         })
-        .catch((err) => console.log(err));
+        .catch((err) => console.log(err))
+    }
+
+    function createService(project) {
+        const lastService = project.services[project.services.length - 1];
+        lastService.id = uuidv4();
+        
+        const lastServiceCost = lastService.cost;
+
+        const newCost = parseFloat(project.cost) + parseFloat(lastServiceCost);
+        
+        if (parseFloat(lastServiceCost) < 0) {
+            setMessage('O orçamento do serviço não pode ser menor que zero!');
+            setType('error')
+            project.services.pop();
+            return false
+        }
+
+        if (newCost > parseFloat(project.budget)) {
+            setMessage('Orçamento utrapassado, verifique o valor do serviço');
+            setType('error')
+            project.services.pop();
+            return false
+        }
+
+        project.cost = newCost;
+
+        fetch(`http://localhost:5000/projects/${project.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(project)
+        })
+        .then((resp) => resp.json())
+        .then((data) => {
+            setshowServiceForm(false);
+        })
+        .catch((err) => console.error(err))
+    }
+
+    function removeService(id, cost) {
+        const servicesUpdated = project.services.filter(
+            (service) => service.id !== id
+        )
+
+        const projectUpdated = project;
+
+        projectUpdated.services = servicesUpdated;
+        projectUpdated.cost = parseFloat(projectUpdated.cost) - parseFloat(cost);
+
+        fetch(`http://localhost:5000/projects/${projectUpdated.id}`,{
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(projectUpdated)
+        })
+        .then((resp) => resp.json())
+        .then((data) => {
+            setProject(projectUpdated);
+            setServices(servicesUpdated);
+            setMessage('Serviço removido com sucesso!')
+        })
+        .catch((err) => console.log(err))
     }
 
     function toggleProjectForm() {
         setshowProjectForm(!showProjectForm);
+    }
+
+    function toggleServiceForm() {
+        setshowServiceForm(!showServiceForm);
     }
 
     return (
@@ -91,7 +168,38 @@ function Project() {
                                     />
                                 </div>
                             )}
-                        </div>                        
+                        </div>  
+                        <div className={styles.service_form_container}>
+                            <h2>Adicione um serviço:</h2>
+                            <button className={styles.btn} onClick={toggleServiceForm}>
+                                {!showServiceForm ? 'Adicionar serviço' : 'Fechar'}
+                            </button>
+                            <div className={styles.project_info}>
+                                {showServiceForm && (
+                                    <ServiceForm 
+                                        handleSubmit={createService}
+                                        btnText="Adicionar Serviço"
+                                        projectData={project}
+                                    />
+                                )}
+                            </div>
+                            <h2>Serviços</h2>
+                            <Container customClass="start">
+                                {services.length > 0 &&
+                                    services.map((service) => (
+                                        <ServiceCard 
+                                            id={service.id}
+                                            name={service.name}
+                                            cost={service.cost}
+                                            description={service.description}
+                                            key={service.id}
+                                            handleRemove={removeService}
+                                        />
+                                    ))
+                                }
+                                {services.length === 0 && <p>Não há serviços cadastrados.</p>}
+                            </Container>
+                        </div>                      
                     </Container>
                 </div>
             ) : (

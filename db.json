@@ -1,22 +1,11 @@
 {
   "projects": [
     {
-      "name": "Vox Machine",
-      "budget": "5600",
+      "name": "E-Commerce",
+      "budget": "45000",
       "category": {
-        "id": "2",
-        "name": "Desenvolvimento"
-      },
-      "cost": 0,
-      "services": [],
-      "id": 1
-    },
-    {
-      "name": "teste",
-      "budget": "11000",
-      "category": {
-        "id": "1",
-        "name": "Infra"
+        "id": "4",
+        "name": "Planejamento"
       },
       "cost": 0,
       "services": [],
@@ -25,8 +14,8 @@
     {
       "name": "Umbrella",
       "category": {
-        "id": "4",
-        "name": "Planejamento"
+        "id": "1",
+        "name": "Infra"
       },
       "budget": "50000",
       "cost": 0,
@@ -35,10 +24,10 @@
     },
     {
       "name": "Barbie Movie",
-      "budget": "1100000000",
+      "budget": "1100000",
       "category": {
-        "id": "4",
-        "name": "Planejamento"
+        "id": "2",
+        "name": "Desenvolvimento"
       },
       "cost": 0,
       "services": [],
@@ -51,9 +40,27 @@
         "id": "2",
         "name": "Desenvolvimento"
       },
+      "cost": null,
+      "services": [
+        {
+          "name": "Logo",
+          "cost": "4500",
+          "description": "teste do teste 2 ao quadrado",
+          "id": "52ea2a53-d4f9-4648-8a8f-64567fe59a0e"
+        }
+      ],
+      "id": 9
+    },
+    {
+      "name": "Pizzaria Guloso",
+      "budget": "20000",
+      "category": {
+        "id": "3",
+        "name": "Design"
+      },
       "cost": 0,
       "services": [],
-      "id": 9
+      "id": 10
     }
   ],
   "categories": [
